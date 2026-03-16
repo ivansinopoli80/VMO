@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forza VMO</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Clash+Display:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Syne:wght@400;700;800&display=swap');
+
+:root {
+  --bg: #0d0d0d;
+  --surface: #161616;
+  --border: #2a2a2a;
+  --text: #efefef;
+  --muted: #555;
+  --warm: #c8a96e;
+  --vmo: #7eb8a4;
+  --lat: #9b7eb8;
+  --cool: #6e8fc8;
+  --rest: #c86e6e;
+  --done: #4a4a4a;
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Mono', monospace;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 16px 40px;
+  gap: 0;
+}
+
+/* HEADER */
+.header {
+  width: 100%;
+  max-width: 520px;
+  padding: 24px 0 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+h1 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.8rem, 5vw, 2.6rem);
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.subtitle {
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* PROGRESS BAR */
+.progress-wrap {
+  width: 100%;
+  max-width: 520px;
+  margin: 16px 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--text);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+/* SECTION BADGE */
+.section-badge {
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid;
+  margin-bottom: 16px;
+  align-self: flex-start;
+}
+
+/* EXERCISE CARD */
+.card {
+  width: 100%;
+  max-width: 520px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 12px;
+  position: relative;
+  transition: border-color 0.3s, opacity 0.3s;
+}
+
+.card.active {
+  border-width: 2px;
+}
+
+.card.done {
+  opacity: 0.4;
+}
+
+.card.done .exercise-name {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.exercise-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  flex: 1;
+}
+
+.exercise-note {
+  font-size: 0.62rem;
+  color: var(--muted);
+  margin-top: 3px;
+  letter-spacing: 0.05em;
+}
+
+.sets-badge {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  padding-top: 2px;
+}
+
+/* SET DOTS */
+.set-dots {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'DM Mono', monospace;
+}
+
+.dot.completed {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+}
+
+.dot.active-dot {
+  border-color: var(--text);
+  color: var(--text);
+  animation: dotPulse 1.5s infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,239,239,0.3); }
+  50% { box-shadow: 0 0 0 6px rgba(239,239,239,0); }
+}
+
+/* ACTION AREA */
+.action-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-set {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.2s;
+  white-space: nowrap;
+}
+
+.btn-set:active { transform: scale(0.95); }
+.btn-set:disabled { opacity: 0.3; cursor: default; }
+
+.btn-primary {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.btn-undo {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+  padding: 10px 14px;
+}
+
+.btn-undo:hover { color: var(--text); border-color: var(--muted); }
+
+/* REST TIMER (inline) */
+.rest-inline {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.rest-inline.visible { display: flex; }
+
+.rest-ring-wrap {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.rest-ring-wrap svg {
+  transform: rotate(-90deg);
+  width: 40px;
+  height: 40px;
+}
+
+.rest-track { fill: none; stroke: var(--border); stroke-width: 3; }
+.rest-prog  { fill: none; stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset 0.5s linear; }
+
+.rest-num {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-size: 0.6rem;
+  font-weight: 500;
+}
+
+.rest-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.btn-skip {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-skip:hover { color: var(--text); border-color: var(--muted); }
+
+/* ISOMETRIC TIMER */
+.iso-timer {
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+}
+.iso-timer.visible { display: flex; }
+
+.iso-bar-wrap {
+  width: 100%;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.iso-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.1s linear;
+}
+
+.iso-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+.iso-count {
+  font-size: 1.4rem;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+}
+
+/* SECTION HEADER inside list */
+.section-header {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 12px;
+}
+
+.section-header .line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.section-header .label {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 3px 12px;
+  border-radius: 20px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+/* DONE STATE */
+.done-screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.done-screen.visible { display: flex; }
+
+.done-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.done-sub {
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.done-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+  max-width: 400px;
+  margin-top: 8px;
+}
+
+.stat-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-val {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.6rem;
+}
+
+.stat-lbl {
+  font-size: 0.55rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.btn-restart {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+  padding: 14px 36px;
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+/* WAKE LOCK */
+.wl-badge {
+  font-size: 0.58rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  margin-top: 8px;
+}
+.wl-badge.on { color: var(--vmo); }
+
+@media (max-width: 400px) {
+  .card { padding: 16px; }
+  .exercise-name { font-size: 0.95rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Forza VMO</h1>
+  <div class="subtitle">Lunedì · Venerdì · ~40 min</div>
+</div>
+
+<div class="progress-wrap" id="progressWrap">
+  <div class="progress-label">
+    <span id="progressLabel">0 / 14 esercizi</span>
+    <span id="progressPct">0%</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+</div>
+
+<div id="workoutList" style="width:100%;max-width:520px;display:flex;flex-direction:column;align-items:stretch;"></div>
+
+<div class="done-screen" id="doneScreen">
+  <div class="done-title">Fatto! 💪</div>
+  <div class="done-sub">Allenamento completato</div>
+  <div class="done-stats">
+    <div class="stat-box">
+      <div class="stat-val" id="statSets">—</div>
+      <div class="stat-lbl">Serie</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" id="statExercises">14</div>
+      <div class="stat-lbl">Esercizi</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" id="statTime">—</div>
+      <div class="stat-lbl">Minuti</div>
+    </div>
+  </div>
+  <button class="btn-restart" onclick="restartAll()">Ricomincia</button>
+</div>
+
+<div class="wl-badge" id="wlBadge">⚫ schermo libero</div>
+
+<script>
+// ===================== DATA =====================
+const WORKOUT = [
+  {
+    section: 'WARM-UP', sectionColor: 'var(--warm)',
+    name: 'Hip Circles', note: '1 serie × 20 rip · ogni direzione',
+    sets: 1, reps: '20', rest: 0, type: 'reps'
+  },
+  {
+    section: null,
+    name: 'Leg Swings Frontali', note: '2 serie × 15 rip · per gamba',
+    sets: 2, reps: '15/gamba', rest: 0, type: 'reps'
+  },
+  {
+    section: null,
+    name: 'Leg Swings Laterali', note: '2 serie × 15 rip · per gamba',
+    sets: 2, reps: '15/gamba', rest: 0, type: 'reps'
+  },
+  {
+    section: null,
+    name: 'Bodyweight Squat', note: '1 serie × 10 rip',
+    sets: 1, reps: '10', rest: 0, type: 'reps'
+  },
+  {
+    section: 'VMO CORE', sectionColor: 'var(--vmo)',
+    name: 'Leg Extension', note: '3 serie × 15 rip · per gamba · cavigliera 2kg',
+    sets: 3, reps: '15/gamba', rest: 45, type: 'reps'
+  },
+  {
+    section: null,
+    name: 'Wall Sit', note: '3 serie × 45 sec · punte fuori, ginocchia fuori',
+    sets: 3, reps: '45', rest: 60, type: 'iso', isoDuration: 45
+  },
+  {
+    section: null,
+    name: 'Bulgarian Split Squat', note: '3 serie × 12 rip · per gamba',
+    sets: 3, reps: '12/gamba', rest: 45, type: 'reps'
+  },
+  {
+    section: 'STABILIZZAZIONE LATERALE', sectionColor: 'var(--lat)',
+    name: 'Clamshell', note: '3 serie × 15 rip · per lato',
+    sets: 3, reps: '15/lato', rest: 20, type: 'reps'
+  },
+  {
+    section: null,
+    name: 'Side Plank', note: '2 serie × 30 sec · per lato',
+    sets: 2, reps: '30', rest: 25, type: 'iso', isoDuration: 30
+  },
+  {
+    section: null,
+    name: 'Lateral Band Walk', note: '3 serie × 20 passi totali (10+10)',
+    sets: 3, reps: '20 passi', rest: 25, type: 'reps'
+  },
+  {
+    section: null,
+    name: 'Fire Hydrant', note: '3 serie × 12 rip · per lato · cavigliera 1kg',
+    sets: 3, reps: '12/lato', rest: 20, type: 'reps'
+  },
+  {
+    section: 'COOL-DOWN', sectionColor: 'var(--cool)',
+    name: 'IT Band Stretch', note: '1 serie × 120 sec · per lato',
+    sets: 1, reps: '120', rest: 0, type: 'iso', isoDuration: 120
+  },
+  {
+    section: null,
+    name: 'Hamstring Stretch', note: '1 serie × 90 sec · per lato',
+    sets: 1, reps: '90', rest: 0, type: 'iso', isoDuration: 90
+  },
+  {
+    section: null,
+    name: 'Quad Stretch', note: '1 serie × 60 sec · per lato',
+    sets: 1, reps: '60', rest: 0, type: 'iso', isoDuration: 60
+  },
+];
+
+// ===================== STATE =====================
+let state = []; // per exercise: { setsCompleted, done }
+let restTimerId = null;
+let isoTimerId = null;
+let startTime = null;
+let totalSetsCompleted = 0;
+let wakeLock = null;
+
+// ===================== WAKE LOCK =====================
+async function requestWakeLock() {
+  if (!('wakeLock' in navigator)) return;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    document.getElementById('wlBadge').textContent = '🟢 schermo sempre attivo';
+    document.getElementById('wlBadge').className = 'wl-badge on';
+    wakeLock.addEventListener('release', () => {
+      document.getElementById('wlBadge').textContent = '⚫ schermo libero';
+      document.getElementById('wlBadge').className = 'wl-badge';
+    });
+  } catch(e) {}
+}
+function releaseWakeLock() {
+  if (wakeLock) { wakeLock.release(); wakeLock = null; }
+}
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'visible' && startTime) requestWakeLock();
+});
+
+// ===================== AUDIO =====================
+const actx = new (window.AudioContext || window.webkitAudioContext)();
+const comp = actx.createDynamicsCompressor();
+comp.threshold.value = -3; comp.knee.value = 2;
+comp.ratio.value = 6; comp.connect(actx.destination);
+
+function beep(freq, dur, type='sine', vol=0.9) {
+  const osc = actx.createOscillator();
+  const g = actx.createGain();
+  osc.connect(g); g.connect(comp);
+  osc.frequency.value = freq; osc.type = type;
+  g.gain.setValueAtTime(vol, actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + dur);
+  osc.start(actx.currentTime); osc.stop(actx.currentTime + dur);
+}
+
+function signalSetDone()  { beep(660, 0.15); setTimeout(() => beep(880, 0.2), 150); }
+function signalRestDone() { beep(880, 0.2); setTimeout(() => beep(1100, 0.25), 180); }
+function signalIsoStart() { beep(440, 0.2); setTimeout(() => beep(660, 0.3), 200); }
+function signalIsoDone()  { beep(880, 0.15); setTimeout(() => beep(1100, 0.15), 150); setTimeout(() => beep(1320, 0.25), 300); }
+function signalWarning()  { beep(1200, 0.07, 'square', 0.7); }
+function signalWorkoutDone() { [0,180,360,560,800].forEach((t,i) => setTimeout(() => beep(660+i*110, 0.3), t)); }
+
+// ===================== BUILD UI =====================
+function init() {
+  state = WORKOUT.map(ex => ({ setsCompleted: 0, done: false, isoRunning: false, restRunning: false }));
+  startTime = null;
+  totalSetsCompleted = 0;
+  document.getElementById('doneScreen').className = 'done-screen';
+  document.getElementById('progressWrap').style.display = '';
+  document.getElementById('workoutList').style.display = '';
+  renderAll();
+  updateProgress();
+}
+
+function renderAll() {
+  const list = document.getElementById('workoutList');
+  list.innerHTML = '';
+
+  WORKOUT.forEach((ex, i) => {
+    // Section header
+    if (ex.section) {
+      const sh = document.createElement('div');
+      sh.className = 'section-header';
+      sh.innerHTML = `
+        <div class="line"></div>
+        <div class="label" style="color:${ex.sectionColor};border-color:${ex.sectionColor}20;">${ex.section}</div>
+        <div class="line"></div>
+      `;
+      list.appendChild(sh);
+    }
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = `card-${i}`;
+    if (state[i].done) card.classList.add('done');
+
+    // Set dots HTML
+    let dotsHtml = '';
+    for (let s = 0; s < ex.sets; s++) {
+      const cls = s < state[i].setsCompleted ? 'dot completed' :
+                  s === state[i].setsCompleted && !state[i].done ? 'dot active-dot' : 'dot';
+      dotsHtml += `<div class="${cls}">${s+1}</div>`;
+    }
+
+    // Action area
+    let actionHtml = '';
+    if (ex.type === 'iso') {
+      actionHtml = `
+        <div class="action-area" id="action-${i}">
+          <button class="btn-set btn-primary" id="btnSet-${i}" onclick="startIso(${i})" ${state[i].done?'disabled':''}>
+            ${state[i].setsCompleted === 0 ? 'Inizia' : 'Prossima serie'}
+          </button>
+          <button class="btn-undo" onclick="undoSet(${i})" ${state[i].setsCompleted===0?'disabled':''}>↩</button>
+        </div>
+        <div class="iso-timer" id="iso-${i}">
+          <div class="iso-bar-wrap"><div class="iso-bar-fill" id="isoFill-${i}" style="background:${ex.sectionColor||'var(--text)'};width:100%"></div></div>
+          <div class="iso-info">
+            <span>tieni la posizione</span>
+            <span id="isoCount-${i}" class="iso-count">—</span>
+          </div>
+        </div>
+        <div class="rest-inline" id="rest-${i}">
+          ${restRingHtml(i, ex.sectionColor||'var(--text)')}
+          <span class="rest-label">recupero</span>
+          <button class="btn-skip" onclick="skipRest(${i})">salta</button>
+        </div>
+      `;
+    } else {
+      actionHtml = `
+        <div class="action-area" id="action-${i}">
+          <button class="btn-set btn-primary" id="btnSet-${i}" onclick="completeSet(${i})" ${state[i].done?'disabled':''}>
+            Serie ${state[i].setsCompleted+1} ✓
+          </button>
+          <button class="btn-undo" onclick="undoSet(${i})" ${state[i].setsCompleted===0?'disabled':''}>↩</button>
+        </div>
+        <div class="rest-inline" id="rest-${i}">
+          ${restRingHtml(i, ex.sectionColor||'var(--text)')}
+          <span class="rest-label">recupero</span>
+          <button class="btn-skip" onclick="skipRest(${i})">salta</button>
+        </div>
+      `;
+    }
+
+    card.innerHTML = `
+      <div class="card-header">
+        <div>
+          <div class="exercise-name">${ex.name}</div>
+          <div class="exercise-note">${ex.note}</div>
+        </div>
+        <div class="sets-badge">${ex.sets}×</div>
+      </div>
+      <div class="set-dots" id="dots-${i}">${dotsHtml}</div>
+      ${actionHtml}
+    `;
+
+    list.appendChild(card);
+  });
+}
+
+function restRingHtml(i, color) {
+  const circ = 2 * Math.PI * 16;
+  return `
+    <div class="rest-ring-wrap">
+      <svg viewBox="0 0 36 36">
+        <circle class="rest-track" cx="18" cy="18" r="16"/>
+        <circle class="rest-prog" id="restProg-${i}" cx="18" cy="18" r="16"
+          stroke="${color}" stroke-dasharray="${circ}" stroke-dashoffset="0"/>
+      </svg>
+      <div class="rest-num" id="restNum-${i}">—</div>
+    </div>
+  `;
+}
+
+// ===================== COMPLETE SET =====================
+function completeSet(i) {
+  if (actx.state === 'suspended') actx.resume();
+  if (!startTime) { startTime = Date.now(); requestWakeLock(); }
+
+  clearTimers();
+  state[i].setsCompleted++;
+  totalSetsCompleted++;
+  signalSetDone();
+
+  if (state[i].setsCompleted >= WORKOUT[i].sets) {
+    state[i].done = true;
+    updateProgress();
+    refreshCard(i);
+    checkAllDone();
+  } else {
+    updateProgress();
+    refreshCard(i);
+    if (WORKOUT[i].rest > 0) startRest(i, WORKOUT[i].rest);
+  }
+  scrollToActive();
+}
+
+// ===================== ISO TIMER =====================
+function startIso(i) {
+  if (actx.state === 'suspended') actx.resume();
+  if (!startTime) { startTime = Date.now(); requestWakeLock(); }
+
+  clearTimers();
+  const ex = WORKOUT[i];
+  const dur = ex.isoDuration * 1000;
+  const isoStart = Date.now();
+  const fill = document.getElementById(`isoFill-${i}`);
+  const count = document.getElementById(`isoCount-${i}`);
+  const isoEl = document.getElementById(`iso-${i}`);
+  const btnEl = document.getElementById(`btnSet-${i}`);
+  const actionEl = document.getElementById(`action-${i}`);
+
+  isoEl.classList.add('visible');
+  actionEl.style.display = 'none';
+  signalIsoStart();
+
+  isoTimerId = setInterval(() => {
+    const elapsed = Date.now() - isoStart;
+    const remaining = dur - elapsed;
+    const frac = remaining / dur;
+    const secLeft = Math.ceil(remaining / 1000);
+
+    fill.style.width = (frac * 100) + '%';
+    count.textContent = secLeft > 0 ? secLeft : 0;
+
+    if (secLeft <= 3 && secLeft > 0) signalWarning();
+
+    if (remaining <= 0) {
+      clearInterval(isoTimerId);
+      isoTimerId = null;
+      isoEl.classList.remove('visible');
+      actionEl.style.display = '';
+      signalIsoDone();
+
+      state[i].setsCompleted++;
+      totalSetsCompleted++;
+
+      if (state[i].setsCompleted >= ex.sets) {
+        state[i].done = true;
+        updateProgress();
+        refreshCard(i);
+        checkAllDone();
+      } else {
+        updateProgress();
+        refreshCard(i);
+        if (ex.rest > 0) startRest(i, ex.rest);
+      }
+      scrollToActive();
+    }
+  }, 100);
+}
+
+// ===================== REST TIMER =====================
+function startRest(i, seconds) {
+  const restEl = document.getElementById(`rest-${i}`);
+  const prog = document.getElementById(`restProg-${i}`);
+  const num = document.getElementById(`restNum-${i}`);
+  const circ = 2 * Math.PI * 16;
+  const dur = seconds * 1000;
+  const restStart = Date.now();
+
+  restEl.classList.add('visible');
+  document.getElementById(`btnSet-${i}`).disabled = true;
+
+  restTimerId = setInterval(() => {
+    const elapsed = Date.now() - restStart;
+    const remaining = dur - elapsed;
+    const frac = Math.max(0, remaining / dur);
+    const secLeft = Math.ceil(remaining / 1000);
+
+    prog.style.strokeDashoffset = circ * (1 - frac);
+    num.textContent = secLeft > 0 ? secLeft : 0;
+
+    if (secLeft <= 3 && secLeft > 0) signalWarning();
+
+    if (remaining <= 0) {
+      clearInterval(restTimerId);
+      restTimerId = null;
+      restEl.classList.remove('visible');
+      document.getElementById(`btnSet-${i}`).disabled = false;
+      signalRestDone();
+      // scroll to card
+      document.getElementById(`card-${i}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 100);
+}
+
+function skipRest(i) {
+  clearInterval(restTimerId);
+  restTimerId = null;
+  document.getElementById(`rest-${i}`).classList.remove('visible');
+  document.getElementById(`btnSet-${i}`).disabled = false;
+}
+
+function clearTimers() {
+  if (restTimerId) { clearInterval(restTimerId); restTimerId = null; }
+  if (isoTimerId) { clearInterval(isoTimerId); isoTimerId = null; }
+  // hide all rest/iso panels
+  WORKOUT.forEach((_, i) => {
+    const r = document.getElementById(`rest-${i}`);
+    const iso = document.getElementById(`iso-${i}`);
+    const action = document.getElementById(`action-${i}`);
+    if (r) r.classList.remove('visible');
+    if (iso) iso.classList.remove('visible');
+    if (action) action.style.display = '';
+  });
+}
+
+// ===================== UNDO =====================
+function undoSet(i) {
+  if (state[i].setsCompleted === 0) return;
+  clearTimers();
+  state[i].setsCompleted--;
+  state[i].done = false;
+  totalSetsCompleted = Math.max(0, totalSetsCompleted - 1);
+  updateProgress();
+  refreshCard(i);
+}
+
+// ===================== REFRESH CARD =====================
+function refreshCard(i) {
+  const ex = WORKOUT[i];
+  const card = document.getElementById(`card-${i}`);
+  const dotsEl = document.getElementById(`dots-${i}`);
+  const btnEl = document.getElementById(`btnSet-${i}`);
+
+  if (state[i].done) {
+    card.classList.add('done');
+    card.classList.remove('active');
+  } else {
+    card.classList.remove('done');
+  }
+
+  // Dots
+  let dotsHtml = '';
+  for (let s = 0; s < ex.sets; s++) {
+    const cls = s < state[i].setsCompleted ? 'dot completed' :
+                s === state[i].setsCompleted && !state[i].done ? 'dot active-dot' : 'dot';
+    dotsHtml += `<div class="${cls}">${s+1}</div>`;
+  }
+  dotsEl.innerHTML = dotsHtml;
+
+  // Button text
+  if (btnEl && !state[i].done) {
+    if (ex.type === 'iso') {
+      btnEl.textContent = state[i].setsCompleted === 0 ? 'Inizia' : 'Prossima serie';
+    } else {
+      btnEl.textContent = `Serie ${state[i].setsCompleted + 1} ✓`;
+    }
+    btnEl.disabled = false;
+  }
+
+  // Undo button
+  const undoBtn = card.querySelector('.btn-undo');
+  if (undoBtn) undoBtn.disabled = state[i].setsCompleted === 0;
+}
+
+// ===================== PROGRESS =====================
+function updateProgress() {
+  const done = state.filter(s => s.done).length;
+  const total = WORKOUT.length;
+  const pct = Math.round(done / total * 100);
+  document.getElementById('progressLabel').textContent = `${done} / ${total} esercizi`;
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+// ===================== CHECK ALL DONE =====================
+function checkAllDone() {
+  if (state.every(s => s.done)) {
+    setTimeout(() => {
+      releaseWakeLock();
+      signalWorkoutDone();
+      const elapsed = startTime ? Math.round((Date.now() - startTime) / 60000) : '—';
+      document.getElementById('statSets').textContent = totalSetsCompleted;
+      document.getElementById('statTime').textContent = elapsed;
+      document.getElementById('doneScreen').className = 'done-screen visible';
+      document.getElementById('progressWrap').style.display = 'none';
+      document.getElementById('workoutList').style.display = 'none';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 600);
+  }
+}
+
+// ===================== SCROLL =====================
+function scrollToActive() {
+  const nextIdx = state.findIndex(s => !s.done);
+  if (nextIdx >= 0) {
+    setTimeout(() => {
+      const card = document.getElementById(`card-${nextIdx}`);
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
+  }
+}
+
+// ===================== RESTART =====================
+function restartAll() {
+  clearTimers();
+  releaseWakeLock();
+  startTime = null;
+  totalSetsCompleted = 0;
+  init();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ===================== START =====================
+init();
+</script>
+</body>
+</html>
